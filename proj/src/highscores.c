@@ -1,0 +1,180 @@
+#include "graphics.h"
+#include "util.h"
+#include <lcom/lcf.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+/**
+ * @brief Reads the high scores from their text file and returns them in an array
+ * 
+ * @param number_highscores 
+ * @return highscore** 
+ */
+
+highscore **readFromFile(unsigned int *number_highscores) {
+
+  highscore **hs;
+
+  FILE *fp;
+  char *line = NULL;
+  size_t length_line = 0;
+  ssize_t read;
+  bool initial = true;
+  char *score;
+  char *name;
+  char *temp;
+  int i = 0;
+  bool empty = true;
+
+  fp = fopen("/home/lcom/labs/proj/src/highscores/highscores.txt", "r");
+  if (fp == NULL) {
+    printf("ERROR: open file failed");
+    return NULL;
+  }
+
+  while ((read = getline(&line, &length_line, fp)) != -1) {
+    empty = false;
+    if (initial) {
+      *number_highscores = atoi(line);
+      hs = (highscore **)malloc(sizeof(highscore) * *number_highscores);
+      initial = false;
+    } else {
+      temp = strtok(line, ",");
+      name = strtok(NULL, ",");
+      temp = strtok(NULL, ",");
+      score = strtok(NULL, ",");
+      highscore *Highscore;
+      Highscore = (highscore *)malloc(sizeof(highscore));
+      Highscore->name =
+          create_objeto_texto(name, 400, 300 + i * 75, ALIGN_LEFT, false);
+      Highscore->score =
+          create_objeto_texto(score, 800, 300 + i * 75, ALIGN_LEFT, false);
+      hs[i] = Highscore;
+
+      i++;
+    }
+  }
+  if(empty){
+    *number_highscores = 0;
+    hs = (highscore **)malloc(sizeof(highscore) * *number_highscores);
+  }
+
+  if (line)
+    free(line);
+
+  fclose(fp);
+
+  return hs;
+}
+
+/**
+ * @brief draws a high score on the screen
+ * 
+ * @param highscores 
+ */
+void draw_single_Highscore(highscore *highscores) {
+  draw_text_singular(highscores->name);
+  draw_text_singular(highscores->score);
+}
+
+/**
+ * @brief draws all the highscores in an array of highscores
+ * 
+ * @param highscores 
+ * @param number_highscores 
+ */
+
+void drawHighscores(highscore **highscores, unsigned int number_highscores) {
+  for (unsigned int i = 0; i < number_highscores; i++) {
+    if (i <= 7)
+      draw_single_Highscore(highscores[i]);
+  }
+}
+
+void writeToFile(highscore **highscores, unsigned int number_highscores) {
+  FILE *f = fopen("/home/lcom/labs/proj/src/highscores/highscores.txt", "w");
+
+  if (f == NULL) {
+    printf("ERROR: open file failed");
+  }
+
+  fprintf(f, "%d\n", number_highscores);
+  for (unsigned int i = 0; i < number_highscores; i++) {
+     if (i == (number_highscores - 1))
+       fprintf(f, "username,%s,points,%s,", highscores[i]->name->string,
+              highscores[i]->score->string);
+     else
+      fprintf(f, "username,%s,points,%s,\n", highscores[i]->name->string,
+              highscores[i]->score->string);
+  }
+
+  fclose(f);
+}
+
+
+/**
+ * @brief generates a new highscore from given data
+ * 
+ * @param name 
+ * @param score 
+ * @param Hs 
+ * @param number_highscores 
+ * @return highscore** 
+ */
+highscore **makeHighScore(char *name, char *score, highscore **Hs,
+                          unsigned int *number_highscores) {
+
+  highscore *Highscore;
+  Highscore = (highscore *)malloc(sizeof(highscore));
+  Highscore->name = create_objeto_texto(
+      name, 400, 435 + *number_highscores * 75, ALIGN_LEFT, false);
+  Highscore->score = create_objeto_texto(
+      score, 600, 435 + *number_highscores * 75, ALIGN_LEFT, false);
+
+  unsigned int indice = *number_highscores;
+  int j = 0;
+  *number_highscores = *number_highscores + 1;
+
+  highscore **new;
+  new = (highscore **)malloc(sizeof(highscore) * (*number_highscores));
+
+  for (unsigned int i = 0; i < *number_highscores; i++) {
+    if (i != indice) {
+      new[i] = Hs[i];
+      j++;
+    } else {
+      new[i] = Highscore;
+    }
+  }
+
+  free(Hs);
+
+  return new;
+}
+
+highscore ** orderHighscore(highscore **Hs, unsigned int number_highscores) {
+
+
+  for (unsigned int j = 0; j < number_highscores - 1; j++) {
+    for (unsigned int i = 0; i < number_highscores - j - 1; i++) {
+      if (atoi(Hs[i]->score->string) < atoi(Hs[i + 1]->score->string)){
+        highscore *aux;
+        aux = (highscore *)malloc(sizeof(highscore));
+
+        aux->score = Hs[i]->score;
+        aux->name = Hs[i]->name;
+
+        Hs[i]->score = Hs[i + 1]->score;
+        Hs[i]->name = Hs[i + 1]->name;
+
+        Hs[i + 1]->score = aux->score;
+        Hs[i + 1]->name = aux->name;
+      }
+    }
+  }
+
+  return Hs;
+}
+ 

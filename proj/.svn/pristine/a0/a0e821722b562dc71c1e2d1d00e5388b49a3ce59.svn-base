@@ -1,0 +1,1262 @@
+#include "util.h"
+#include "graphics.h"
+#include <lcom/lcf.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+extern Objeto rato;
+extern struct packet pp;
+extern uint16_t hres; /* XResolution */
+extern uint16_t vres; /* YResolution */
+extern unsigned int number_deseases;
+extern char **deseases;
+extern Bitmap *ghost;
+extern unsigned int points;
+extern unsigned int tempo;
+unsigned int currentChar = 0;
+extern uint32_t scanCode;
+extern char *name;
+
+// creations
+
+/**
+ * @brief Create a objeto object
+ *
+ * @param bmp
+ * @param x
+ * @param y
+ * @param alignment
+ * @param pickable
+ * @return Objeto*
+ */
+Objeto *create_objeto(Bitmap *bmp, int x, int y, Alignment alignment,
+                      bool pickable) {
+
+  Objeto *obj = (Objeto *)malloc(sizeof(Objeto));
+  obj->bitmap = bmp;
+  obj->x = x;
+  obj->y = y;
+  obj->inside = false;
+  obj->pickable = pickable;
+  obj->alignment = alignment;
+
+  return obj;
+}
+/**
+ * @brief Create a objeto texto object
+ *
+ * @param string
+ * @param x
+ * @param y
+ * @param alignment
+ * @param pickable
+ * @return Objeto_texto*
+ */
+
+Objeto_texto *create_objeto_texto(char *string, int x, int y,
+                                  Alignment alignment, bool pickable) {
+
+  char filename[50];
+
+  Objeto_texto *obj = (Objeto_texto *)malloc(sizeof(Objeto_texto));
+
+  obj->string = (char *)malloc(sizeof(char) * 20);
+  strcpy(obj->string, string);
+
+  obj->bitmaps = (Bitmap **)malloc(sizeof(Bitmap) * strlen(string));
+
+  for (unsigned int i = 0; i < strlen(string); i++) {
+    sprintf(filename, "/home/lcom/labs/proj/images/characters/%c.bmp",
+            string[i]);
+    obj->bitmaps[i] = loadBitmap(filename);
+  }
+
+  obj->number_bitmaps = strlen(string);
+  obj->x = x;
+  obj->y = y;
+  obj->inside = false;
+  obj->pickable = pickable;
+  obj->alignment = alignment;
+
+  return obj;
+}
+
+/**
+ * @brief Create a pill object
+ *
+ * @param bmp
+ * @param x
+ * @param y
+ * @param alignment
+ * @param cure1
+ * @param cure2
+ * @return Comprimido*
+ */
+Comprimido *create_pill(Bitmap *bmp, int x, int y, Alignment alignment,
+                        char cure1[10], char cure2[10]) {
+
+  Comprimido *pill = (Comprimido *)malloc(sizeof(Comprimido));
+  pill->bitmap = bmp;
+  pill->x = x;
+  pill->y = y;
+  pill->inside = false;
+  pill->pickable = false;
+  pill->alignment = alignment;
+  strcpy(pill->cure1, cure1);
+  strcpy(pill->cure2, cure2);
+
+  return pill;
+}
+/**
+ * @brief Create a cliente object
+ *
+ * @param x
+ * @param y
+ * @param alignment
+ * @return Cliente*
+ */
+
+Cliente *create_cliente(int x, int y, Alignment alignment) {
+
+  Cliente *cli = (Cliente *)malloc(sizeof(Cliente));
+  unsigned int random = rand() % 6;
+  Bitmap *bmp;
+  if (random == 0) {
+    bmp = loadBitmap("/home/lcom/labs/proj/images/clients/grandma1.bmp");
+  } else if (random == 1) {
+    bmp = loadBitmap("/home/lcom/labs/proj/images/clients/grandma2.bmp");
+  } else if (random == 2) {
+    bmp = loadBitmap(
+        "/home/lcom/labs/proj/images/clients/strollergrandma.bmp");
+  } else if (random == 3) {
+    bmp = loadBitmap("/home/lcom/labs/proj/images/clients/wheelchair.bmp");
+  } else if (random == 4) {
+    bmp = loadBitmap("/home/lcom/labs/proj/images/clients/caneguy.bmp");
+  } else {
+    bmp = loadBitmap("/home/lcom/labs/proj/images/clients/crazyguy.bmp");
+  }
+  cli->bitmap = bmp;
+  cli->x = x;
+  cli->y = y;
+  cli->alignment = alignment;
+  cli->timeLeft = (rand() % 26) + 5;
+  cli->in_position = false;
+  cli->speed = rand() % 2 + 1;
+  cli->inside = false;
+  cli->pills_recieved = 0;
+  random = rand() % 100;
+  if (random < 20) // 20% de prob de haver 1 sintoma
+    cli->number_symptoms = 1;
+  else if (random >= 60) // 40% de prob de haver 2 sintoma
+    cli->number_symptoms = 2;
+  else // 30% de prob de haver 3 sintoma
+    cli->number_symptoms = 3;
+
+  if (cli->number_symptoms == 1) {
+    char *symptom1 = deseases[(rand() % number_deseases)];
+
+    cli->symptom1 =
+        create_objeto_texto(symptom1, -500, cli->y - 50, ALIGN_LEFT, false);
+    cli->symptom2 =
+        create_objeto_texto("CURED", -500, cli->y - 50, ALIGN_LEFT, false);
+    cli->symptom3 =
+        create_objeto_texto("CURED", -500, cli->y - 50, ALIGN_LEFT, false);
+  } else if (cli->number_symptoms == 2) {
+    int symptom1 = (rand() % number_deseases);
+    int symptom2 = (rand() % number_deseases);
+
+    while (symptom1 == symptom2) {
+      symptom2 = (rand() % number_deseases);
+    }
+
+    cli->symptom1 = create_objeto_texto(deseases[symptom1], -500, cli->y - 50,
+                                        ALIGN_LEFT, false);
+    cli->symptom2 = create_objeto_texto(deseases[symptom2], -500, cli->y - 75,
+                                        ALIGN_LEFT, false);
+    cli->symptom3 =
+        create_objeto_texto("CURED", -500, cli->y - 50, ALIGN_LEFT, false);
+  } else if (cli->number_symptoms == 3) {
+    int symptom1 = (rand() % number_deseases);
+    int symptom2 = (rand() % number_deseases);
+    int symptom3 = (rand() % number_deseases);
+
+    while (symptom1 == symptom2) {
+      symptom2 = (rand() % number_deseases);
+    }
+
+    while (symptom1 == symptom3 || symptom2 == symptom3) {
+      symptom3 = (rand() % number_deseases);
+    }
+
+    cli->symptom1 = create_objeto_texto(deseases[symptom1], -500, cli->y - 50,
+                                        ALIGN_LEFT, false);
+    cli->symptom2 = create_objeto_texto(deseases[symptom2], -500, cli->y - 75,
+                                        ALIGN_LEFT, false);
+    cli->symptom3 = create_objeto_texto(deseases[symptom3], -500, cli->y - 100,
+                                        ALIGN_LEFT, false);
+  }
+
+  return cli;
+}
+
+// draws
+
+/**
+ * @brief draws Bitmap objects
+ *
+ * @param objetos
+ * @param numero_objetos
+ */
+void drawBitmaps(Objeto **objetos, unsigned int numero_objetos) {
+  unsigned int i = 0;
+
+  while (i < numero_objetos) {
+    drawBitmap(objetos[i]->bitmap, objetos[i]->x, objetos[i]->y,
+               objetos[i]->alignment);
+    i++;
+  }
+}
+
+/**
+ * @brief draws the bitmaps of clientes
+ *
+ * @param clientes
+ * @param numero_clientes
+ */
+
+void drawClientes(Cliente **clientes, unsigned int numero_clientes) {
+  unsigned int i = numero_clientes;
+
+  while (i > 0) {
+    i--;
+    if (clientes[i]->in_position && clientes[i]->timeLeft != 0) {
+      char timeLeft[20];
+      sprintf(timeLeft, "%d", clientes[i]->timeLeft);
+      Objeto_texto *timeText = create_objeto_texto(
+          timeLeft, clientes[i]->x, clientes[i]->y, ALIGN_LEFT, false);
+      draw_text_singular(timeText);
+      if (clientes[i]->number_symptoms == 1) {
+        draw_text_singular(clientes[i]->symptom1);
+      } else if (clientes[i]->number_symptoms == 2) {
+        draw_text_singular(clientes[i]->symptom1);
+        draw_text_singular(clientes[i]->symptom2);
+      } else if (clientes[i]->number_symptoms == 3) {
+        draw_text_singular(clientes[i]->symptom1);
+        draw_text_singular(clientes[i]->symptom2);
+        draw_text_singular(clientes[i]->symptom3);
+      }
+    }
+    drawBitmap(clientes[i]->bitmap, clientes[i]->x, clientes[i]->y,
+               clientes[i]->alignment);
+  }
+}
+/**
+ * @brief draws the bitmaps of comprimidos
+ *
+ * @param comprimidos
+ * @param numero_comprimidos
+ */
+
+void drawComprimidos(Comprimido **comprimidos,
+                     unsigned int numero_comprimidos) {
+  unsigned int i = 0;
+
+  while (i < numero_comprimidos) {
+    drawBitmap(comprimidos[i]->bitmap, comprimidos[i]->x, comprimidos[i]->y,
+               comprimidos[i]->alignment);
+    i++;
+  }
+}
+
+/**
+ * @brief draws the bitmaps of text objects
+ *
+ * @param objetos
+ * @param numero_objetos
+ */
+
+void draw_text_objects(Objeto_texto **objetos, unsigned int numero_objetos) {
+  unsigned int i = 0;
+  int x = 0;
+  while (i < numero_objetos) {
+
+    for (unsigned int j = 0; j < objetos[i]->number_bitmaps; j++) {
+      drawBitmap(objetos[i]->bitmaps[j], (objetos[i]->x + x), objetos[i]->y,
+                 objetos[i]->alignment);
+      x = x + 26;
+    }
+
+    i++;
+  }
+}
+
+/**
+ * @brief draws text bitmaps
+ *
+ * @param objeto
+ */
+void draw_text_singular(Objeto_texto *objeto) {
+  int x = 0;
+  for (unsigned int j = 0; j < objeto->number_bitmaps; j++) {
+    drawBitmap(objeto->bitmaps[j], (objeto->x + x), objeto->y,
+               objeto->alignment);
+    x = x + 26;
+  }
+}
+
+/**
+ * @brief draws every object required in a scene outside of in_game
+ *
+ * @param objetos
+ * @param numero_objetos
+ * @param objetos_texto
+ * @param numero_objetos_texto
+ */
+
+void drawAll(Objeto **objetos, unsigned int numero_objetos,
+             Objeto_texto **objetos_texto, unsigned int numero_objetos_texto) {
+
+  drawBitmaps(objetos, numero_objetos);
+  draw_text_objects(objetos_texto, numero_objetos_texto);
+
+  drawBitmap(rato.bitmap, rato.x, rato.y, ALIGN_LEFT);
+}
+
+/**
+ * @brief draws every object required in an in_game scene
+ *
+ * @param in_game
+ * @param numero_in_game
+ * @param clientes
+ * @param numero_clientes
+ * @param comprimidos
+ * @param numero_comprimidos
+ * @param objetos_texto
+ * @param numero_objetos_texto
+ */
+void drawAllInGame(Objeto **in_game, unsigned int numero_in_game,
+                   Cliente **clientes, unsigned int numero_clientes,
+                   Comprimido **comprimidos, unsigned int numero_comprimidos,
+                   Objeto_texto **objetos_texto,
+                   unsigned int numero_objetos_texto) {
+
+  drawBitmaps(in_game, numero_in_game);
+
+  draw_text_objects(objetos_texto, numero_objetos_texto);
+
+  drawClientes(clientes, numero_clientes);
+
+  // draw_bags(bags, number_bags);
+  drawComprimidos(comprimidos, numero_comprimidos);
+
+  char Points[10];
+  sprintf(Points, "%d", points);
+  Objeto_texto *score = create_objeto_texto(Points, 10, 10, ALIGN_LEFT, false);
+  draw_text_singular(score);
+
+  char Tempo[2];
+  sprintf(Tempo, "%d", tempo);
+  Objeto_texto *tempo_jogo =
+      create_objeto_texto(Tempo, 1220, 10, ALIGN_LEFT, false);
+  draw_text_singular(tempo_jogo);
+
+  drawBitmap(rato.bitmap, rato.x, rato.y, ALIGN_LEFT);
+
+  // doubleBuffering();
+}
+
+// moves
+
+/**
+ * @brief moves the mouse object
+ *
+ */
+void move_rato() {
+  int x, y;
+  x = rato.x + pp.delta_x;
+  y = rato.y - pp.delta_y;
+
+  if (x > hres)
+    x = hres;
+  else if (x < 0)
+    x = 0;
+
+  if (y > vres)
+    y = vres;
+  else if (y < 0)
+    y = 0;
+
+  rato.x = x;
+  rato.y = y;
+}
+
+/**
+ * @brief moves general objects
+ *
+ * @param object
+ */
+void move_objeto_geral(Objeto *object) {
+  if (object->pickable) {
+
+    int x = object->x + pp.delta_x;
+    int y = object->y - pp.delta_y;
+
+    // restrict the object to the screen
+    if (x >= hres - object->bitmap->bitmapInfoHeader.width)
+      x = hres - object->bitmap->bitmapInfoHeader.width;
+    else if (x < 0)
+      x = 0;
+
+    if (y >= vres - object->bitmap->bitmapInfoHeader.height)
+      y = vres - object->bitmap->bitmapInfoHeader.height;
+    else if (y < 0)
+      y = 0;
+
+    // make sure that the object is being picked
+    if (!pp.lb && !pp.rb && !pp.mb &&
+        ((rato.x >= object->x &&
+          rato.x <= object->x + object->bitmap->bitmapInfoHeader.width) &&
+         (rato.y >= object->y &&
+          rato.y <= object->y + object->bitmap->bitmapInfoHeader.height))) {
+      object->inside = true;
+    } else if (pp.lb && !pp.rb && !pp.mb &&
+               ((rato.x >= object->x &&
+                 rato.x <=
+                     object->x + object->bitmap->bitmapInfoHeader.width) &&
+                (rato.y >= object->y &&
+                 rato.y <=
+                     object->y + object->bitmap->bitmapInfoHeader.height)) &&
+               object->inside == true) {
+      object->x = x;
+      object->y = y;
+    } else
+      object->inside = false;
+  }
+}
+
+/**
+ * @brief moves object's coordinates
+ *
+ * @param obj
+ * @param x
+ * @param y
+ */
+
+void move_objeto_coordenadas(Objeto *obj, int x, int y) {
+
+  if (obj->x > x)
+    obj->x = obj->x - 1;
+  if (obj->x < x)
+    obj->x = obj->x + 1;
+
+  if (obj->y > y)
+    obj->y = obj->y - 1;
+  if (obj->y < y)
+    obj->y = obj->y + 1;
+}
+
+/**
+ * @brief moves client's coordinates
+ *
+ * @param obj
+ * @param x
+ * @param y
+ * @return int
+ */
+int move_cliente_coordenadas(Cliente *obj, int x, int y) {
+
+  if (obj->x > x)
+    obj->x = obj->x - obj->speed;
+  if (obj->x < x)
+    obj->x = obj->x + obj->speed;
+
+  if (obj->y > y)
+    obj->y = obj->y - obj->speed;
+  if (obj->y < y)
+    obj->y = obj->y + obj->speed;
+
+  if (obj->y == y && obj->x == x) {
+    obj->symptom1->x = x;
+    obj->symptom2->x = x;
+    obj->symptom3->x = x;
+    obj->in_position = true;
+    return OK;
+  } else {
+    obj->in_position = false;
+    return -1;
+  }
+}
+
+/**
+ * @brief moves comprimidos
+ *
+ * @param object
+ * @return int
+ */
+
+int move_comprimido(Comprimido *object) {
+
+  int x = object->x + pp.delta_x;
+  int y = object->y - pp.delta_y;
+
+  // restrict the object to the screen
+  if (x >= hres - object->bitmap->bitmapInfoHeader.width)
+    x = hres - object->bitmap->bitmapInfoHeader.width;
+  else if (x < 0)
+    x = 0;
+
+  if (y >= vres - object->bitmap->bitmapInfoHeader.height)
+    y = vres - object->bitmap->bitmapInfoHeader.height;
+  else if (y < 0)
+    y = 0;
+
+  // make sure that the object is being picked
+  if (!pp.lb && !pp.rb && !pp.mb &&
+      ((rato.x >= object->x &&
+        rato.x <= object->x + object->bitmap->bitmapInfoHeader.width) &&
+       (rato.y >= object->y &&
+        rato.y <= object->y + object->bitmap->bitmapInfoHeader.height)) &&
+      object->inside == true) {
+    return OK;
+  } else if (!pp.lb && !pp.rb && !pp.mb &&
+             ((rato.x >= object->x &&
+               rato.x <= object->x + object->bitmap->bitmapInfoHeader.width) &&
+              (rato.y >= object->y &&
+               rato.y <=
+                   object->y + object->bitmap->bitmapInfoHeader.height))) {
+    object->inside = true;
+  } else if (pp.lb && !pp.rb && !pp.mb &&
+             ((rato.x >= object->x &&
+               rato.x <= object->x + object->bitmap->bitmapInfoHeader.width) &&
+              (rato.y >= object->y &&
+               rato.y <=
+                   object->y + object->bitmap->bitmapInfoHeader.height)) &&
+             object->inside == true) {
+    object->x = x;
+    object->y = y;
+  } else
+    object->inside = false;
+
+  return -1;
+}
+
+/**
+ * @brief moves clientes into the store
+ *
+ * @param clientes
+ * @param numero_clientes
+ * @return int
+ */
+int move_clientes_in(Cliente **clientes, unsigned int numero_clientes) {
+  int ret = OK;
+  for (unsigned int i = 0; i < numero_clientes; i++) {
+    if (!clientes[i]->in_position && clientes[i]->timeLeft > 0) {
+      if (move_cliente_coordenadas(clientes[i], 250 + i * 250, Y_CLIENTE) !=
+          OK) {
+        ret = -1;
+      }
+    }
+  }
+
+  return ret;
+}
+
+/**
+ * @brief moves clients out of the store
+ *
+ * @param clientes
+ * @param numero_clientes
+ * @return int
+ */
+int move_clientes_out(Cliente **clientes, unsigned int numero_clientes) {
+  int ret = OK;
+
+  for (unsigned int i = 0; i < numero_clientes; i++) {
+    if (clientes[i]->timeLeft <= 0) {
+      if (move_cliente_coordenadas(clientes[i], -300, Y_CLIENTE) != OK) {
+        ret = -1;
+      } else {
+        unsigned int random = rand() % 6;
+        Bitmap *bmp;
+        if (random == 0) {
+          bmp =
+              loadBitmap("/home/lcom/labs/proj/images/clients/grandma1.bmp");
+        } else if (random == 1) {
+          bmp =
+              loadBitmap("/home/lcom/labs/proj/images/clients/grandma2.bmp");
+        } else if (random == 2) {
+          bmp = loadBitmap(
+              "/home/lcom/labs/proj/images/clients/strollergrandma.bmp");
+        } else if (random == 3) {
+          bmp = loadBitmap(
+              "/home/lcom/labs/proj/images/clients/wheelchair.bmp");
+        } else if (random == 4) {
+          bmp =
+              loadBitmap("/home/lcom/labs/proj/images/clients/caneguy.bmp");
+        } else {
+          bmp =
+              loadBitmap("/home/lcom/labs/proj/images/clients/crazyguy.bmp");
+        }
+        clientes[i]->bitmap = bmp;
+        clientes[i]->in_position = false;
+        clientes[i]->pills_recieved = 0;
+        clientes[i]->speed = rand() % 2 + 1;
+        clientes[i]->timeLeft = ((rand() % 26) + 5);
+        random = rand() % 100;
+        if (random < 20) // 20% de prob de haver 1 sintoma
+          clientes[i]->number_symptoms = 1;
+        else if (random >= 60) // 40% de prob de haver 2 sintoma
+          clientes[i]->number_symptoms = 2;
+        else // 30% de prob de haver 3 sintoma
+          clientes[i]->number_symptoms = 3;
+
+        if (clientes[i]->number_symptoms == 1) {
+          char *symptom1 = deseases[(rand() % number_deseases)];
+
+          clientes[i]->symptom1 = create_objeto_texto(
+              symptom1, -500, clientes[i]->y - 50, ALIGN_LEFT, false);
+          clientes[i]->symptom2 = create_objeto_texto(
+              "CURED", -500, clientes[i]->y - 50, ALIGN_LEFT, false);
+          clientes[i]->symptom3 = create_objeto_texto(
+              "CURED", -500, clientes[i]->y - 50, ALIGN_LEFT, false);
+        } else if (clientes[i]->number_symptoms == 2) {
+          int symptom1 = (rand() % number_deseases);
+          int symptom2 = (rand() % number_deseases);
+
+          while (symptom1 == symptom2) {
+            symptom2 = (rand() % number_deseases);
+          }
+
+          clientes[i]->symptom1 = create_objeto_texto(
+              deseases[symptom1], -500, clientes[i]->y - 50, ALIGN_LEFT, false);
+          clientes[i]->symptom2 = create_objeto_texto(
+              deseases[symptom2], -500, clientes[i]->y - 75, ALIGN_LEFT, false);
+          clientes[i]->symptom3 = create_objeto_texto(
+              "CURED", -500, clientes[i]->y - 50, ALIGN_LEFT, false);
+        } else if (clientes[i]->number_symptoms == 3) {
+          int symptom1 = (rand() % number_deseases);
+          int symptom2 = (rand() % number_deseases);
+          int symptom3 = (rand() % number_deseases);
+
+          while (symptom1 == symptom2) {
+            symptom2 = (rand() % number_deseases);
+          }
+
+          while (symptom1 == symptom3 || symptom2 == symptom3) {
+            symptom3 = (rand() % number_deseases);
+          }
+
+          clientes[i]->symptom1 = create_objeto_texto(
+              deseases[symptom1], -500, clientes[i]->y - 50, ALIGN_LEFT, false);
+          clientes[i]->symptom2 = create_objeto_texto(
+              deseases[symptom2], -500, clientes[i]->y - 75, ALIGN_LEFT, false);
+          clientes[i]->symptom3 =
+              create_objeto_texto(deseases[symptom3], -500,
+                                  clientes[i]->y - 100, ALIGN_LEFT, false);
+        }
+      }
+    }
+  }
+
+  return ret;
+}
+
+// verifications and game_utilities
+
+/**
+ * @brief checks if every client symptom has been cured
+ *
+ * @param cliente
+ * @return true
+ * @return false
+ */
+bool check_if_all_cured(Cliente *cliente) {
+  if (strcmp(cliente->symptom1->string, "CURED") == 0 &&
+      strcmp(cliente->symptom2->string, "CURED") == 0 &&
+      strcmp(cliente->symptom3->string, "CURED") == 0)
+    return true;
+  else
+    return false;
+}
+
+/**
+ * @brief  checks if the specific object has been the target of a mouse click
+ *
+ * @param object
+ * @return true
+ * @return false
+ */
+
+bool pressed(Objeto *object) {
+  if (object->pickable) {
+    if (!pp.lb && !pp.rb && !pp.mb &&
+        ((rato.x >= object->x &&
+          rato.x <= object->x + object->bitmap->bitmapInfoHeader.width) &&
+         (rato.y >= object->y &&
+          rato.y <= object->y + object->bitmap->bitmapInfoHeader.height))) {
+      object->inside = true;
+    } else if (pp.lb && !pp.rb && !pp.mb &&
+               ((rato.x >= object->x &&
+                 rato.x <=
+                     object->x + object->bitmap->bitmapInfoHeader.width) &&
+                (rato.y >= object->y &&
+                 rato.y <=
+                     object->y + object->bitmap->bitmapInfoHeader.height)) &&
+               object->inside == true) {
+      return true;
+    } else
+      object->inside = false;
+  }
+  return false;
+}
+
+/**
+ * @brief drags pill to clients
+ *
+ * @param comprimidos
+ * @param comprimidos_size
+ * @param clientes
+ * @param numero_clientes
+ */
+void dragPillProcess(Comprimido **comprimidos, int comprimidos_size,
+                     Cliente **clientes, unsigned int numero_clientes) {
+  int moved = -1;
+  int indice = -1;
+
+  for (int k = 0; k < comprimidos_size; k++) {
+    moved = move_comprimido(comprimidos[k]);
+    if (moved == OK)
+      indice = k;
+  }
+
+  for (unsigned int j = 0; j < numero_clientes; j++) {
+    if (((rato.x >= clientes[j]->x &&
+          rato.x <=
+              clientes[j]->x + clientes[j]->bitmap->bitmapInfoHeader.width) &&
+         (rato.y >= clientes[j]->y &&
+          rato.y <=
+              clientes[j]->y + clientes[j]->bitmap->bitmapInfoHeader.height))) {
+      clientes[j]->inside = true;
+    } else {
+      clientes[j]->inside = false;
+    }
+
+    for (int i = 0; i < comprimidos_size; i++) {
+      if (indice == i)
+        moved = OK;
+      else
+        moved = -1;
+
+      if (clientes[j]->inside && moved == OK && clientes[j]->in_position) {
+
+        givePill(comprimidos[i], clientes[j]);
+
+        comprimidos[i]->x = -300;
+        comprimidos[i]->y = -300;
+
+      } else if (!clientes[j]->inside && moved == OK) {
+        comprimidos[i]->x = 330 + i * 70;
+        comprimidos[i]->y = 840;
+      }
+    }
+
+    if (check_if_all_cured(clientes[j]) || clientes[j]->pills_recieved == 2) {
+      if (clientes[j]->pills_recieved == 2 &&
+          !check_if_all_cured(clientes[j])) {
+        if (points <= 5)
+          points = 0;
+        else {
+          points = points - 5;
+        }
+      }
+
+      if (clientes[j]->timeLeft == 0 && !check_if_all_cured(clientes[j])) {
+        if (points <= 3)
+          points = 0;
+        else {
+          points = points - 3;
+        }
+      }
+
+      clientes[j]->timeLeft = 0;
+    }
+  }
+}
+
+/**
+ * @brief  resets the pill's positions
+ *
+ * @param comprimidos
+ * @return Comprimido**
+ */
+
+Comprimido **resetPillPositions(Comprimido **comprimidos) {
+
+  comprimidos[0]->x = 330;
+  comprimidos[1]->x = 400;
+  comprimidos[2]->x = 470;
+  comprimidos[3]->x = 540;
+  comprimidos[4]->x = 610;
+  comprimidos[5]->x = 680;
+  comprimidos[6]->x = 750;
+  comprimidos[7]->x = 820;
+  comprimidos[8]->x = 890;
+
+  comprimidos[0]->y = 840;
+  comprimidos[1]->y = 840;
+  comprimidos[2]->y = 840;
+  comprimidos[3]->y = 840;
+  comprimidos[4]->y = 840;
+  comprimidos[5]->y = 840;
+  comprimidos[6]->y = 840;
+  comprimidos[7]->y = 840;
+  comprimidos[8]->y = 840;
+
+  return comprimidos;
+}
+
+/**
+ * @brief  gives pill to client
+ *
+ * @param comprimido
+ * @param cliente
+ */
+
+void givePill(Comprimido *comprimido, Cliente *cliente) {
+
+  int x = 0;
+  int cura1 = 0;
+  int cura2 = 0;
+
+  cliente->pills_recieved++;
+
+  if (strcmp(cliente->symptom1->string, comprimido->cure1) == 0) {
+    cliente->symptom1 = updateText(cliente->symptom1, "CURED");
+    cura1++;
+    if (strcmp(comprimido->cure2, comprimido->cure1) == 0)
+      cura2++;
+    x++;
+    points++;
+  }
+  if (strcmp(cliente->symptom1->string, comprimido->cure2) == 0) {
+    cliente->symptom1 = updateText(cliente->symptom1, "CURED");
+    cura2++;
+    x++;
+    points++;
+  }
+
+  if (strcmp(cliente->symptom2->string, comprimido->cure1) == 0) {
+    cliente->symptom2 = updateText(cliente->symptom2, "CURED");
+    cura1++;
+    if (strcmp(comprimido->cure2, comprimido->cure1) == 0)
+      cura2++;
+    x++;
+    points++;
+  }
+  if (strcmp(cliente->symptom2->string, comprimido->cure2) == 0) {
+    cliente->symptom2 = updateText(cliente->symptom2, "CURED");
+    cura2++;
+    x++;
+    points++;
+  }
+
+  if (strcmp(cliente->symptom3->string, comprimido->cure1) == 0) {
+    cliente->symptom3 = updateText(cliente->symptom3, "CURED");
+    cura1++;
+    if (strcmp(comprimido->cure2, comprimido->cure1) == 0)
+      cura2++;
+    x++;
+    points++;
+  }
+  if (strcmp(cliente->symptom3->string, comprimido->cure2) == 0) {
+    cliente->symptom3 = updateText(cliente->symptom3, "CURED");
+    cura2++;
+    x++;
+    points++;
+  }
+
+  // 1 doença
+  // se dado comprimido de 2 curas a cliente com 1 doença perde 1 ponto
+  if (cliente->number_symptoms == 1 &&
+      strcmp(comprimido->cure2, comprimido->cure1) != 0) {
+    if (points != 0)
+      points--;
+  }
+
+  // 2 doenças
+  if (cliente->number_symptoms == 2) {
+
+    // se dado comprimido de 1 cura a cliente com 2 doenças perde 1 ponto
+    if (strcmp(comprimido->cure2, comprimido->cure1) == 0) {
+      if (points != 0)
+        points--;
+    }
+
+    // se dado comprimido de 2 curas a cliente com 2 doenças e as duas curas não
+    // curarem perde 1 ponto
+    if (cura1 + cura2 != 2) {
+      if (points != 0)
+        points--;
+    }
+  }
+
+  // 3 doenças
+  if (cliente->number_symptoms == 3) {
+    if (cura1 + cura2 != 2) {
+      if (points != 0)
+        points--;
+    }
+  }
+
+  // se comprimido não curar nada perde um ponto
+  if (x == 0) {
+    if (points != 0)
+      points--;
+  }
+}
+
+/**
+ * @brief counts down the time for the client to be in the store
+ *
+ * @param clientes
+ * @param numero_clientes
+ */
+void countdown(Cliente **clientes, unsigned int numero_clientes) {
+
+  for (unsigned int i = 0; i < numero_clientes; i++) {
+
+    if (clientes[i]->timeLeft > 0 && clientes[i]->in_position)
+      clientes[i]->timeLeft = clientes[i]->timeLeft - 1;
+  }
+}
+
+// utilities
+
+/**
+ * @brief deletes objects from an array
+ *
+ * @param obj
+ * @param objetos
+ * @param numero_objetos
+ * @return Objeto**
+ */
+Objeto **delete_objeto_from_array(Objeto *obj, Objeto **objetos,
+                                  unsigned int *numero_objetos) {
+
+  if (obj == NULL)
+    return NULL;
+
+  unsigned int j = 0;
+
+  Objeto **new;
+  new = (Objeto **)malloc(sizeof(Objeto) * (*numero_objetos - 1));
+
+  for (unsigned int i = 0; i < *numero_objetos; i++) {
+    if (objetos[i] != obj) {
+      new[j] = objetos[i];
+      j++;
+    }
+  }
+
+  free(objetos);
+  *numero_objetos = *numero_objetos - 1;
+
+  return new;
+}
+
+/**
+ * @brief deletes text objects from an array
+ *
+ * @param obj
+ * @param objetos
+ * @param numero_objetos_texto
+ * @return Objeto_texto**
+ */
+Objeto_texto **
+delete_objeto_texto_from_array(Objeto_texto *obj, Objeto_texto **objetos,
+                               unsigned int *numero_objetos_texto) {
+
+  if (obj == NULL)
+    return NULL;
+
+  unsigned int j = 0;
+
+  Objeto_texto **new;
+  new = (Objeto_texto **)malloc(sizeof(Objeto_texto) *
+                                (*numero_objetos_texto - 1));
+
+  for (unsigned int i = 0; i < *numero_objetos_texto; i++) {
+    if (objetos[i] != obj) {
+      new[j] = objetos[i];
+      j++;
+    }
+  }
+
+  free(objetos);
+  *numero_objetos_texto = *numero_objetos_texto - 1;
+
+  return new;
+}
+
+/**
+ * @brief deletes clients from an array
+ *
+ * @param obj
+ * @param objetos
+ * @param numero_objetos
+ * @return Cliente**
+ */
+
+Cliente **delete_cliente_from_array(Cliente *obj, Cliente **objetos,
+                                    unsigned int *numero_objetos) {
+
+  if (obj == NULL)
+    return NULL;
+
+  unsigned int j = 0;
+
+  Cliente **new;
+  new = (Cliente **)malloc(sizeof(Cliente) * (*numero_objetos - 1));
+
+  for (unsigned int i = 0; i < *numero_objetos; i++) {
+    if (objetos[i] != obj) {
+      new[j] = objetos[i];
+      j++;
+    }
+  }
+
+  free(objetos);
+  *numero_objetos = *numero_objetos - 1;
+
+  return new;
+}
+
+/**
+ * @brief deletes object
+ *
+ * @param obj
+ */
+
+void deleteObjeto(Objeto *obj) {
+
+  if (obj == NULL)
+    return;
+
+  obj->x = 0;
+  obj->y = 0;
+  obj->pickable = false;
+
+  deleteBitmap(obj->bitmap);
+  free(obj);
+}
+
+/**
+ * @brief deletes text object
+ *
+ * @param obj
+ */
+
+void deleteObjeto_texto(Objeto_texto *obj) {
+
+  if (obj == NULL)
+    return;
+
+  obj->x = 0;
+  obj->y = 0;
+  obj->pickable = false;
+
+  for (int i = 0; obj->number_bitmaps; i++)
+    deleteBitmap(obj->bitmaps[i]);
+
+  obj->number_bitmaps = 0;
+
+  free(obj->bitmaps);
+  free(obj);
+}
+
+/**
+ * @brief adds object to an array
+ *
+ * @param obj
+ * @param indice
+ * @param objetos
+ * @param numero_objetos
+ * @return Objeto**
+ */
+Objeto **add_objeto_to_array(Objeto *obj, int indice, Objeto **objetos,
+                             unsigned int *numero_objetos) {
+
+  if (obj == NULL)
+    return NULL;
+
+  unsigned int j = 0;
+
+  if (indice >= ((int)*numero_objetos + 1))
+    return objetos;
+
+  if (indice == -1) {
+    indice = *numero_objetos;
+  }
+
+  *numero_objetos = *numero_objetos + 1;
+
+  Objeto **new;
+  new = (Objeto **)malloc(sizeof(Objeto) * *numero_objetos);
+
+  for (int i = 0; i < (int)*numero_objetos; i++) {
+    if (i != indice) {
+      new[i] = objetos[j];
+      j++;
+    } else {
+      new[j] = obj;
+    }
+  }
+
+  free(objetos);
+
+  return new;
+}
+
+/**
+ * @brief adds text object to an array
+ *
+ * @param obj
+ * @param indice
+ * @param objetos
+ * @param numero_objetos_texto
+ * @return Objeto_texto**
+ */
+Objeto_texto **add_objeto_texto_to_array(Objeto_texto *obj, int indice,
+                                         Objeto_texto **objetos,
+                                         unsigned int *numero_objetos_texto) {
+
+  if (obj == NULL)
+    return NULL;
+
+  unsigned int j = 0;
+
+  if (indice >= ((int)*numero_objetos_texto + 1))
+    return objetos;
+
+  if (indice == -1) {
+    indice = *numero_objetos_texto;
+  }
+
+  *numero_objetos_texto = *numero_objetos_texto + 1;
+
+  Objeto_texto **new;
+  new = (Objeto_texto **)malloc(sizeof(Objeto_texto) * *numero_objetos_texto);
+
+  for (int i = 0; i < (int)*numero_objetos_texto; i++) {
+    if (i != indice) {
+      new[i] = objetos[j];
+      j++;
+    } else {
+      new[j] = obj;
+    }
+  }
+
+  free(objetos);
+
+  return new;
+}
+
+/**
+ * @brief adds comprimido to an array
+ *
+ * @param obj
+ * @param indice
+ * @param objetos
+ * @param numero_objetos
+ * @return Comprimido**
+ */
+
+Comprimido **add_comprimido_array(Comprimido *obj, int indice,
+                                  Comprimido **objetos,
+                                  unsigned int *numero_objetos) {
+
+  if (obj == NULL)
+    return NULL;
+
+  unsigned int j = 0;
+
+  if (indice >= ((int)*numero_objetos + 1))
+    return objetos;
+
+  if (indice == -1) {
+    indice = *numero_objetos;
+  }
+
+  *numero_objetos = *numero_objetos + 1;
+
+  Comprimido **new;
+  new = (Comprimido **)malloc(sizeof(Comprimido) * *numero_objetos);
+
+  for (int i = 0; i < (int)*numero_objetos; i++) {
+    if (i != indice) {
+      new[i] = objetos[j];
+      j++;
+    } else {
+      new[j] = obj;
+    }
+  }
+
+  free(objetos);
+
+  return new;
+}
+
+/**
+ * @brief updates text object with a new text
+ *
+ * @param obj
+ * @param newText
+ * @return Objeto_texto*
+ */
+
+Objeto_texto *updateText(Objeto_texto *obj, char *newText) {
+
+  char filename[50];
+
+  Objeto_texto *new = (Objeto_texto *)malloc(sizeof(Objeto_texto));
+
+  new->string = (char *)malloc(sizeof(char) * 20);
+  strcpy(new->string, newText);
+
+  new->bitmaps = (Bitmap **)malloc(sizeof(Bitmap) * strlen(newText));
+
+  for (unsigned int i = 0; i < strlen(newText); i++) {
+    sprintf(filename, "/home/lcom/labs/proj/images/characters/%c.bmp",
+            newText[i]);
+    new->bitmaps[i] = loadBitmap(filename);
+  }
+
+  new->number_bitmaps = strlen(newText);
+  new->x = obj->x;
+  new->y = obj->y;
+  new->inside = obj->inside;
+  new->pickable = obj->pickable;
+  new->alignment = obj->alignment;
+
+  return new;
+}
+
+void alterName() {
+
+  if (scanCode == W_KEY)
+    name[currentChar] += 1;
+  else if (scanCode == S_KEY)
+    name[currentChar] -= 1;
+  if (scanCode == D_KEY)
+    currentChar += 1;
+  if (scanCode == A_KEY)
+    currentChar -= 1;
+
+  if (currentChar > 2)
+    currentChar = 2;
+
+  if (currentChar <= 0)
+    currentChar = 0;
+}

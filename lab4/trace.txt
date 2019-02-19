@@ -1,0 +1,551 @@
+@lcflib.a:2018, lcf_start
+  mouse_test_packet(cnt)
+> mouse_test_packet(10)
+  @mouse.c:83, dataReportingEnable
+    sys_inb(STAT_REG, &stat)
+  > sys_inb(0x64, addr: 0xeffff678)
+  < sys_inb(0x64, addr: 0xeffff678 [0x1c = 0b00011100])
+  @mouse.c:87, dataReportingEnable
+    sys_outb(KBC_CMD_REG, WRITE_BYTE_MOUSE)
+  > sys_outb(0x64, 0xd4 = 0b11010100)
+  @mouse.c:89, dataReportingEnable
+    micros_to_ticks(DELAY_US)
+  @mouse.c:89, dataReportingEnable
+    tickdelay(micros_to_ticks(DELAY_US))
+  > tickdelay(1 [16.7 ms])
+  @mouse.c:90, dataReportingEnable
+    sys_inb(STAT_REG, &stat)
+  > sys_inb(0x64, addr: 0xeffff678)
+  < sys_inb(0x64, addr: 0xeffff678 [0x1c = 0b00011100])
+  @mouse.c:94, dataReportingEnable
+    sys_outb(OUT_BUF, MOUSE_ENABLE)
+  > sys_outb(0x60, 0xf4 = 0b11110100)
+  @mouse.c:96, dataReportingEnable
+    micros_to_ticks(DELAY_US)
+  @mouse.c:96, dataReportingEnable
+    tickdelay(micros_to_ticks(DELAY_US))
+  > tickdelay(1 [16.7 ms])
+  @mouse.c:97, dataReportingEnable
+    sys_inb(OUT_BUF, &data)
+  > sys_inb(0x60, addr: 0xeffff674)
+  < sys_inb(0x60, addr: 0xeffff674 [0xfa = 0b11111010])
+  @mouse.c:20, mouse_subscribe_int
+    sys_irqsetpolicy(MOUSE_IRQ, IRQ_REENABLE | IRQ_EXCLUSIVE, &hook_id)
+  > sys_irqsetpolicy(12, 3, addr: 0x81c7818 [12])
+  < sys_irqsetpolicy(12, 3, addr: 0x81c7818 [10]) -> (ret: 0)
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0x18 = 0b00011000])
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0xff = 0b11111111])
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0x00 = 0b00000000])
+  @mouse.c:305, mouseByteReader
+    mouse_print_packet(&pp)
+  > mouse_print_packet(addr: 0x81e3846)
+    "B1=0x18 B2=0xff B3=0x00 LB=0 MB=0 RB=0 XOV=0 X=-1 YOV=0 Y=0"
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0x18 = 0b00011000])
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0xfe = 0b11111110])
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0x01 = 0b00000001])
+  @mouse.c:305, mouseByteReader
+    mouse_print_packet(&pp)
+  > mouse_print_packet(addr: 0x81e3846)
+    "B1=0x18 B2=0xfe B3=0x01 LB=0 MB=0 RB=0 XOV=0 X=-2 YOV=0 Y=1"
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0x18 = 0b00011000])
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0xff = 0b11111111])
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0x00 = 0b00000000])
+  @mouse.c:305, mouseByteReader
+    mouse_print_packet(&pp)
+  > mouse_print_packet(addr: 0x81e3846)
+    "B1=0x18 B2=0xff B3=0x00 LB=0 MB=0 RB=0 XOV=0 X=-1 YOV=0 Y=0"
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0x08 = 0b00001000])
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0x00 = 0b00000000])
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0x02 = 0b00000010])
+  @mouse.c:305, mouseByteReader
+    mouse_print_packet(&pp)
+  > mouse_print_packet(addr: 0x81e3846)
+    "B1=0x08 B2=0x00 B3=0x02 LB=0 MB=0 RB=0 XOV=0 X=0 YOV=0 Y=2"
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0x18 = 0b00011000])
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0xff = 0b11111111])
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0x05 = 0b00000101])
+  @mouse.c:305, mouseByteReader
+    mouse_print_packet(&pp)
+  > mouse_print_packet(addr: 0x81e3846)
+    "B1=0x18 B2=0xff B3=0x05 LB=0 MB=0 RB=0 XOV=0 X=-1 YOV=0 Y=5"
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0x18 = 0b00011000])
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0xfe = 0b11111110])
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0x0a = 0b00001010])
+  @mouse.c:305, mouseByteReader
+    mouse_print_packet(&pp)
+  > mouse_print_packet(addr: 0x81e3846)
+    "B1=0x18 B2=0xfe B3=0x0a LB=0 MB=0 RB=0 XOV=0 X=-2 YOV=0 Y=10"
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0x18 = 0b00011000])
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0xfd = 0b11111101])
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0x0d = 0b00001101])
+  @mouse.c:305, mouseByteReader
+    mouse_print_packet(&pp)
+  > mouse_print_packet(addr: 0x81e3846)
+    "B1=0x18 B2=0xfd B3=0x0d LB=0 MB=0 RB=0 XOV=0 X=-3 YOV=0 Y=13"
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0x18 = 0b00011000])
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0xfb = 0b11111011])
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0x14 = 0b00010100])
+  @mouse.c:305, mouseByteReader
+    mouse_print_packet(&pp)
+  > mouse_print_packet(addr: 0x81e3846)
+    "B1=0x18 B2=0xfb B3=0x14 LB=0 MB=0 RB=0 XOV=0 X=-5 YOV=0 Y=20"
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0x18 = 0b00011000])
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0xf8 = 0b11111000])
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0x1e = 0b00011110])
+  @mouse.c:305, mouseByteReader
+    mouse_print_packet(&pp)
+  > mouse_print_packet(addr: 0x81e3846)
+    "B1=0x18 B2=0xf8 B3=0x1e LB=0 MB=0 RB=0 XOV=0 X=-8 YOV=0 Y=30"
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0x18 = 0b00011000])
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0xf5 = 0b11110101])
+  @lab4.c:64, mouse_test_packet
+    driver_receive(ANY, &msg, &ipc_status)
+  > driver_receive(ANY, addr: 0xeffff6b0, addr: 0xeffff6f8)
+  < driver_receive(<[HARDWARE: 0b0000000000000000000000000000000000000000000000000001000000000000]>)
+  @lab4.c:79, mouse_test_packet
+    mouse_ih()
+    @mouse.c:388, mouse_ih
+      sys_inb(STAT_REG, &stat)
+    > sys_inb(0x64, addr: 0xeffff5ec)
+    < sys_inb(0x64, addr: 0xeffff5ec [0x3d = 0b00111101])
+    @mouse.c:394, mouse_ih
+      sys_inb(OUT_BUF, &mouseByte)
+    > sys_inb(0x60, addr: 0x81e3854)
+    < sys_inb(0x60, addr: 0x81e3854 [0x28 = 0b00101000])
+  @mouse.c:305, mouseByteReader
+    mouse_print_packet(&pp)
+  > mouse_print_packet(addr: 0x81e3846)
+    "B1=0x18 B2=0xf5 B3=0x28 LB=0 MB=0 RB=0 XOV=0 X=-11 YOV=0 Y=40"
+  @mouse.c:28, mouse_unsubscribe_int
+    sys_irqdisable(&hook_id)
+  > sys_irqdisable(addr: 0x81c7818 [10])
+  < sys_irqdisable(addr: 0x81c7818 [10]) -> (ret: 0)
+  @mouse.c:34, mouse_unsubscribe_int
+    sys_irqrmpolicy(&hook_id)
+  > sys_irqrmpolicy(addr: 0x81c7818 [10])
+  < sys_irqrmpolicy(addr: 0x81c7818 [10]) -> (ret: 0)
+  @mouse.c:146, dataReportingDisable
+    sys_inb(STAT_REG, &stat)
+  > sys_inb(0x64, addr: 0xeffff678)
+  < sys_inb(0x64, addr: 0xeffff678 [0x1c = 0b00011100])
+  @mouse.c:150, dataReportingDisable
+    sys_outb(KBC_CMD_REG, WRITE_BYTE_MOUSE)
+  > sys_outb(0x64, 0xd4 = 0b11010100)
+  @mouse.c:152, dataReportingDisable
+    micros_to_ticks(DELAY_US)
+  @mouse.c:152, dataReportingDisable
+    tickdelay(micros_to_ticks(DELAY_US))
+  > tickdelay(1 [16.7 ms])
+  @mouse.c:153, dataReportingDisable
+    sys_inb(STAT_REG, &stat)
+  > sys_inb(0x64, addr: 0xeffff678)
+  < sys_inb(0x64, addr: 0xeffff678 [0x1c = 0b00011100])
+  @mouse.c:157, dataReportingDisable
+    sys_outb(OUT_BUF, MOUSE_DISABLE)
+  > sys_outb(0x60, 0xf5 = 0b11110101)
+  @mouse.c:159, dataReportingDisable
+    micros_to_ticks(DELAY_US)
+  @mouse.c:159, dataReportingDisable
+    tickdelay(micros_to_ticks(DELAY_US))
+  > tickdelay(1 [16.7 ms])
+  @mouse.c:160, dataReportingDisable
+    sys_inb(OUT_BUF, &data)
+  > sys_inb(0x60, addr: 0xeffff674)
+  < sys_inb(0x60, addr: 0xeffff674 [0xfa = 0b11111010])
+  @mouse.c:121, restoreStateDefault
+    sys_inb(STAT_REG, &stat)
+  > sys_inb(0x64, addr: 0xeffff67c)
+  < sys_inb(0x64, addr: 0xeffff67c [0x1c = 0b00011100])
+  @mouse.c:125, restoreStateDefault
+    sys_outb(KBC_CMD_REG, WRITE_CMD_BYTE)
+  > sys_outb(0x64, 0x60 = 0b01100000)
+  @mouse.c:127, restoreStateDefault
+    micros_to_ticks(DELAY_US)
+  @mouse.c:127, restoreStateDefault
+    tickdelay(micros_to_ticks(DELAY_US))
+  > tickdelay(1 [16.7 ms])
+  @mouse.c:128, restoreStateDefault
+    sys_inb(STAT_REG, &stat)
+  > sys_inb(0x64, addr: 0xeffff67c)
+  < sys_inb(0x64, addr: 0xeffff67c [0x1c = 0b00011100])
+  @mouse.c:132, restoreStateDefault
+    sys_outb(OUT_BUF, minixState)
+  > sys_outb(0x60, 0x47 = 0b01000111)
+< mouse_test_packet(10) -> (ret: 0)
